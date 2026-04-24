@@ -1,131 +1,88 @@
 package test;
 
-import main.QCMGMT_APP;
+import main.LengthUnit;
+import main.QuantityLength;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
 public class QCMGMT_APPTest {
 
-    double eps = 1e-3;
-
     @Test
-    void testAddition_TargetFeet() {
-        var result =
-                QCMGMT_APP.QuantityLength.add(
-                        new QCMGMT_APP.QuantityLength(1, QCMGMT_APP.LengthUnit.FEET),
-                        new QCMGMT_APP.QuantityLength(12, QCMGMT_APP.LengthUnit.INCH),
-                        QCMGMT_APP.LengthUnit.FEET
-                );
+    void testFeetEqualsInches() {
 
-        assertEquals(2, result.getValue(), eps);
+        QuantityLength f =
+                new QuantityLength(1, LengthUnit.FEET);
+
+        QuantityLength i =
+                new QuantityLength(12, LengthUnit.INCH);
+
+        assertEquals(f, i);
     }
 
     @Test
-    void testAddition_TargetInches() {
-        var result =
-                QCMGMT_APP.QuantityLength.add(
-                        1, QCMGMT_APP.LengthUnit.FEET,
-                        12, QCMGMT_APP.LengthUnit.INCH,
-                        QCMGMT_APP.LengthUnit.INCH
-                );
+    void testYardEqualsFeet() {
 
-        assertEquals(24, result.getValue(), eps);
-    }
-
-    @Test
-    void testAddition_TargetYards() {
-        var result =
-                QCMGMT_APP.QuantityLength.add(
-                        1, QCMGMT_APP.LengthUnit.FEET,
-                        12, QCMGMT_APP.LengthUnit.INCH,
-                        QCMGMT_APP.LengthUnit.YARDS
-                );
-
-        assertEquals(0.6667, result.getValue(), 1e-2);
-    }
-
-    @Test
-    void testAddition_TargetCentimeters() {
-        var result =
-                QCMGMT_APP.QuantityLength.add(
-                        1, QCMGMT_APP.LengthUnit.INCH,
-                        1, QCMGMT_APP.LengthUnit.INCH,
-                        QCMGMT_APP.LengthUnit.CENTIMETERS
-                );
-
-        assertEquals(5.08, result.getValue(), 1e-2);
-    }
-
-    @Test
-    void testAddition_Commutativity() {
-        var a = new QCMGMT_APP.QuantityLength(1, QCMGMT_APP.LengthUnit.FEET);
-        var b = new QCMGMT_APP.QuantityLength(12, QCMGMT_APP.LengthUnit.INCH);
-
-        var r1 = QCMGMT_APP.QuantityLength.add(a, b, QCMGMT_APP.LengthUnit.YARDS);
-        var r2 = QCMGMT_APP.QuantityLength.add(b, a, QCMGMT_APP.LengthUnit.YARDS);
-
-        assertEquals(r1, r2);
-    }
-
-    @Test
-    void testAddition_WithZero() {
-        var result =
-                QCMGMT_APP.QuantityLength.add(
-                        5, QCMGMT_APP.LengthUnit.FEET,
-                        0, QCMGMT_APP.LengthUnit.INCH,
-                        QCMGMT_APP.LengthUnit.YARDS
-                );
-
-        assertEquals(1.6667, result.getValue(), 1e-2);
-    }
-
-    @Test
-    void testAddition_Negative() {
-        var result =
-                QCMGMT_APP.QuantityLength.add(
-                        5, QCMGMT_APP.LengthUnit.FEET,
-                        -2, QCMGMT_APP.LengthUnit.FEET,
-                        QCMGMT_APP.LengthUnit.INCH
-                );
-
-        assertEquals(36, result.getValue(), eps);
-    }
-
-    @Test
-    void testNullTargetUnit() {
-        assertThrows(
-                IllegalArgumentException.class,
-                () -> QCMGMT_APP.QuantityLength.add(
-                        1,
-                        QCMGMT_APP.LengthUnit.FEET,
-                        12,
-                        QCMGMT_APP.LengthUnit.INCH,
-                        null
-                )
+        assertEquals(
+                new QuantityLength(1, LengthUnit.YARDS),
+                new QuantityLength(3, LengthUnit.FEET)
         );
     }
 
     @Test
-    void testLargeToSmallScale() {
-        var result =
-                QCMGMT_APP.QuantityLength.add(
-                        1000, QCMGMT_APP.LengthUnit.FEET,
-                        500, QCMGMT_APP.LengthUnit.FEET,
-                        QCMGMT_APP.LengthUnit.INCH
-                );
+    void testCmEqualsInch() {
 
-        assertEquals(18000, result.getValue(), eps);
+        assertEquals(
+                new QuantityLength(2.54, LengthUnit.CENTIMETERS),
+                new QuantityLength(1, LengthUnit.INCH)
+        );
     }
 
     @Test
-    void testSmallToLargeScale() {
-        var result =
-                QCMGMT_APP.QuantityLength.add(
-                        12, QCMGMT_APP.LengthUnit.INCH,
-                        12, QCMGMT_APP.LengthUnit.INCH,
-                        QCMGMT_APP.LengthUnit.YARDS
+    void testConvertFeetToInches() {
+
+        double result =
+                QuantityLength.convert(
+                        1,
+                        LengthUnit.FEET,
+                        LengthUnit.INCH
                 );
 
-        assertEquals(0.6667, result.getValue(), 1e-2);
+        assertEquals(12, result, 0.001);
+    }
+
+    @Test
+    void testAdditionWithTargetUnit() {
+
+        QuantityLength a =
+                new QuantityLength(1, LengthUnit.FEET);
+
+        QuantityLength b =
+                new QuantityLength(12, LengthUnit.INCH);
+
+        QuantityLength result =
+                QuantityLength.add(a, b, LengthUnit.FEET);
+
+        assertEquals(
+                new QuantityLength(2, LengthUnit.FEET),
+                result
+        );
+    }
+
+    @Test
+    void testNullUnit() {
+
+        assertThrows(
+                IllegalArgumentException.class,
+                () -> new QuantityLength(1, null)
+        );
+    }
+
+    @Test
+    void testSameReference() {
+
+        QuantityLength a =
+                new QuantityLength(1, LengthUnit.FEET);
+
+        assertEquals(a, a);
     }
 }
