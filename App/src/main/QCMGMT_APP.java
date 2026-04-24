@@ -2,20 +2,22 @@ package main;
 
 public class QCMGMT_APP {
 
+    private static final double EPSILON = 1e-6;
+
     public enum LengthUnit {
         INCH(1.0),
         FEET(12.0),
         YARDS(36.0),
         CENTIMETERS(0.393701);
 
-        private final double conversionFactor;
+        private final double factor;
 
-        LengthUnit(double conversionFactor) {
-            this.conversionFactor = conversionFactor;
+        LengthUnit(double factor) {
+            this.factor = factor;
         }
 
-        public double getConversionFactor() {
-            return conversionFactor;
+        public double getFactor() {
+            return factor;
         }
     }
 
@@ -24,47 +26,93 @@ public class QCMGMT_APP {
         private final LengthUnit unit;
 
         public QuantityLength(double value, LengthUnit unit) {
-            if (unit == null) {
-                throw new IllegalArgumentException("Unit cannot be null");
-            }
+            validate(value, unit);
             this.value = value;
             this.unit = unit;
         }
 
+        private static void validate(double value, LengthUnit unit) {
+            if (unit == null)
+                throw new IllegalArgumentException("Unit cannot be null");
+
+            if (!Double.isFinite(value))
+                throw new IllegalArgumentException("Invalid numeric value");
+        }
+
         private double toBaseUnit() {
-            return value * unit.getConversionFactor();
+            return value * unit.getFactor();
+        }
+
+        public QuantityLength convertTo(LengthUnit targetUnit) {
+            double converted = convert(value, unit, targetUnit);
+            return new QuantityLength(converted, targetUnit);
+        }
+
+        public static double convert(
+                double value,
+                LengthUnit source,
+                LengthUnit target) {
+
+            validate(value, source);
+            validate(value, target);
+
+            double inBase = value * source.getFactor();
+            return inBase / target.getFactor();
         }
 
         @Override
         public boolean equals(Object obj) {
             if (this == obj)
                 return true;
+
             if (obj == null || getClass() != obj.getClass())
                 return false;
 
             QuantityLength other = (QuantityLength) obj;
 
-            return Double.compare(
-                    this.toBaseUnit(),
-                    other.toBaseUnit()
-            ) == 0;
+            return Math.abs(
+                    this.toBaseUnit() - other.toBaseUnit()
+            ) < EPSILON;
         }
 
         @Override
         public int hashCode() {
             return Double.hashCode(toBaseUnit());
         }
+
+        @Override
+        public String toString() {
+            return value + " " + unit;
+        }
+    }
+
+    public static void demonstrateLengthConversion(
+            double value,
+            LengthUnit from,
+            LengthUnit to) {
+
+        double result = QuantityLength.convert(value, from, to);
+
+        System.out.println(
+                value + " " + from + " = " + result + " " + to
+        );
+    }
+
+    public static void demonstrateLengthConversion(
+            QuantityLength q,
+            LengthUnit target) {
+
+        System.out.println(
+                q + " = " + q.convertTo(target)
+        );
     }
 
     public static void main(String[] args) {
 
-        QuantityLength yard = new QuantityLength(1, LengthUnit.YARDS);
-        QuantityLength feet = new QuantityLength(3, LengthUnit.FEET);
+        demonstrateLengthConversion(1, LengthUnit.FEET, LengthUnit.INCH);
+        demonstrateLengthConversion(3, LengthUnit.YARDS, LengthUnit.FEET);
 
-        QuantityLength cm = new QuantityLength(1, LengthUnit.CENTIMETERS);
-        QuantityLength inch = new QuantityLength(0.393701, LengthUnit.INCH);
-
-        System.out.println(yard.equals(feet)); // true
-        System.out.println(cm.equals(inch));   // true
+        QuantityLength q = new QuantityLength(1, LengthUnit.YARDS);
+        demonstrateLengthConversion(q, LengthUnit.INCH);
     }
 }
