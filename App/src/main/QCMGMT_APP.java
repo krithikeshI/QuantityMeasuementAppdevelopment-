@@ -34,7 +34,7 @@ public class QCMGMT_APP {
 
         private static void validate(double value, LengthUnit unit) {
             if (unit == null)
-                throw new IllegalArgumentException("Unit cannot be null");
+                throw new IllegalArgumentException("Invalid unit");
 
             if (!Double.isFinite(value))
                 throw new IllegalArgumentException("Invalid number");
@@ -53,8 +53,12 @@ public class QCMGMT_APP {
         }
 
         public static double convert(double value, LengthUnit from, LengthUnit to) {
-            validate(value, from);
-            validate(value, to);
+            if (from == null || to == null)
+                throw new IllegalArgumentException("Invalid unit");
+
+            if (!Double.isFinite(value))
+                throw new IllegalArgumentException("Invalid number");
+
             return value * from.getFactor() / to.getFactor();
         }
 
@@ -66,26 +70,37 @@ public class QCMGMT_APP {
         }
 
         public QuantityLength add(QuantityLength other) {
-            if (other == null)
-                throw new IllegalArgumentException("Null operand");
-
-            double totalBase = this.toBaseUnit() + other.toBaseUnit();
-
-            double result = totalBase / this.unit.getFactor();
-
-            return new QuantityLength(result, this.unit);
+            return add(this, other, this.unit);
         }
 
-        public static QuantityLength add(QuantityLength a, QuantityLength b) {
-            return a.add(b);
+        public static QuantityLength add(
+                QuantityLength a,
+                QuantityLength b,
+                LengthUnit targetUnit) {
+
+            if (a == null || b == null)
+                throw new IllegalArgumentException("Null operand");
+
+            if (targetUnit == null)
+                throw new IllegalArgumentException("Null target unit");
+
+            double totalBase = a.toBaseUnit() + b.toBaseUnit();
+
+            double result = totalBase / targetUnit.getFactor();
+
+            return new QuantityLength(result, targetUnit);
         }
 
         public static QuantityLength add(
                 double v1, LengthUnit u1,
-                double v2, LengthUnit u2) {
+                double v2, LengthUnit u2,
+                LengthUnit target) {
 
-            return new QuantityLength(v1, u1)
-                    .add(new QuantityLength(v2, u2));
+            return add(
+                    new QuantityLength(v1, u1),
+                    new QuantityLength(v2, u2),
+                    target
+            );
         }
 
         @Override
@@ -110,7 +125,7 @@ public class QCMGMT_APP {
 
         @Override
         public String toString() {
-            return value + " " + unit;
+            return String.format("%.4f %s", value, unit);
         }
     }
 
@@ -119,11 +134,8 @@ public class QCMGMT_APP {
         var a = new QuantityLength(1, LengthUnit.FEET);
         var b = new QuantityLength(12, LengthUnit.INCH);
 
-        System.out.println(a.add(b)); // 2 FEET
-
-        var y = new QuantityLength(1, LengthUnit.YARDS);
-        var f = new QuantityLength(3, LengthUnit.FEET);
-
-        System.out.println(y.add(f)); // 2 YARDS
+        System.out.println(QuantityLength.add(a, b, LengthUnit.FEET));   // 2.0000 FEET
+        System.out.println(QuantityLength.add(a, b, LengthUnit.INCH));   // 24.0000 INCH
+        System.out.println(QuantityLength.add(a, b, LengthUnit.YARDS));  // 0.6667 YARDS
     }
 }
