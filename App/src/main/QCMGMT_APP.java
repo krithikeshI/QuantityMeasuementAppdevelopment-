@@ -1,56 +1,63 @@
 package main;
 
 public class QCMGMT_APP {
-    public static class Feet {
-        private final double value;
-        public Feet(double value) {
-            this.value = value;
+
+    public enum LengthUnit {
+        FEET(1.0),
+        INCH(1.0 / 12.0); // 12 inches = 1 foot
+
+        private final double conversionFactor;
+
+        LengthUnit(double conversionFactor) {
+            this.conversionFactor = conversionFactor;
         }
+
+        public double getConversionFactor() {
+            return conversionFactor;
+        }
+    }
+
+    public static class QuantityLength {
+        private final double value;
+        private final LengthUnit unit;
+
+        public QuantityLength(double value, LengthUnit unit) {
+            if (unit == null) {
+                throw new IllegalArgumentException("Unit cannot be null");
+            }
+            this.value = value;
+            this.unit = unit;
+        }
+
+        private double toBaseUnit() {
+            return value * unit.getConversionFactor();
+        }
+
         @Override
         public boolean equals(Object obj) {
             if (this == obj)
                 return true;
             if (obj == null || getClass() != obj.getClass())
                 return false;
-            Feet other = (Feet) obj;
-            return Double.compare(this.value, other.value) == 0;
+
+            QuantityLength other = (QuantityLength) obj;
+
+            return Double.compare(
+                    this.toBaseUnit(),
+                    other.toBaseUnit()
+            ) == 0;
         }
+
         @Override
         public int hashCode() {
-            return Double.hashCode(value);
+            return Double.hashCode(toBaseUnit());
         }
     }
-    public static class Inches {
-        private final double value;
-        public Inches(double value) {
-            this.value = value;
-        }
-        @Override
-        public boolean equals(Object obj) {
-            if (this == obj)
-                return true;
-            if (obj == null || getClass() != obj.getClass())
-                return false;
-            Inches other = (Inches) obj;
-            return Double.compare(this.value, other.value) == 0;
-        }
-        @Override
-        public int hashCode() {
-            return Double.hashCode(value);
-        }
-    }
-    public static boolean compareFeet(double a, double b) {
-        return new Feet(a).equals(new Feet(b));
-    }
-    public static boolean compareInches(double a, double b){
-        return new Inches(a).equals(new Inches(b));
-    }
+
     public static void main(String[] args) {
+        QuantityLength q1 = new QuantityLength(1.0, LengthUnit.FEET);
+        QuantityLength q2 = new QuantityLength(12.0, LengthUnit.INCH);
 
-        System.out.println("Feet Equal: " +
-                compareFeet(1.0,1.0));
-
-        System.out.println("Inches Equal: " +
-                compareInches(1.0,1.0));
+        System.out.println(q1.equals(q2)); // true
     }
 }
