@@ -91,18 +91,6 @@ public class QCMGMT_APP {
             return new QuantityLength(result, targetUnit);
         }
 
-        public static QuantityLength add(
-                double v1, LengthUnit u1,
-                double v2, LengthUnit u2,
-                LengthUnit target) {
-
-            return add(
-                    new QuantityLength(v1, u1),
-                    new QuantityLength(v2, u2),
-                    target
-            );
-        }
-
         @Override
         public boolean equals(Object obj) {
             if (this == obj)
@@ -129,13 +117,30 @@ public class QCMGMT_APP {
         }
     }
 
+    // ✅ UC8 Demo integrated here
     public static void main(String[] args) {
 
-        var a = new QuantityLength(1, LengthUnit.FEET);
-        var b = new QuantityLength(12, LengthUnit.INCH);
+        QuantityLength a = new QuantityLength(1, LengthUnit.FEET);
+        QuantityLength b = new QuantityLength(12, LengthUnit.INCH);
 
-        System.out.println(QuantityLength.add(a, b, LengthUnit.FEET));   // 2.0000 FEET
-        System.out.println(QuantityLength.add(a, b, LengthUnit.INCH));   // 24.0000 INCH
-        System.out.println(QuantityLength.add(a, b, LengthUnit.YARDS));  // 0.6667 YARDS
+        // Equality
+        System.out.println(a.equals(b)); // true
+
+        // Conversion
+        System.out.println(a.convertTo(LengthUnit.INCH)); // 12 INCH
+
+        // Addition (target unit)
+        System.out.println(
+                QuantityLength.add(a, b, LengthUnit.FEET)
+        ); // 2 FEET
+
+        // Another example
+        System.out.println(
+                QuantityLength.add(
+                        new QuantityLength(1, LengthUnit.YARDS),
+                        new QuantityLength(3, LengthUnit.FEET),
+                        LengthUnit.YARDS
+                )
+        ); // 2 YARDS
     }
 }
